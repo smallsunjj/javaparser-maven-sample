@@ -10,10 +10,14 @@ According to my understanding, my local IDE with maven framework automatically d
 
 ### Task 2:
 1. Based on Task 1, MethodDeclarationCollector.class is implemented to collect all MethodDeclarations with @Test.
-2. Call .resolve().getQualifiedName() to get qualified names.
+2. Call *.resolve().getQualifiedName()* to get qualified names.
 
 ### Task 3:
 1. Based on Task 2, MethodCallExprCollector.class is implemented to collect all assert statements
 2. In current branch, the assert statement is defined as:  
 Scope equals to "Assert", e.g. Assert.xxx;  
 Or method name contains "assert", e.g. xxx.assertYYY() or assertYYY()
+
+### Task 4:
+1. *helper()* is used to recursively extract MethodCallExpr, dealing with CastExpr edge case  
+2. Reorganized previous code

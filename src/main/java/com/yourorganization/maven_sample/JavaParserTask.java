@@ -3,6 +3,7 @@ package com.yourorganization.maven_sample;//package main.java;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -19,11 +20,15 @@ import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
 import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
 import javassist.expr.MethodCall;
+import org.checkerframework.checker.units.qual.A;
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class JavaParserTask {
@@ -33,7 +38,7 @@ public class JavaParserTask {
   private static final String file_name_2 = "avro/src/test/java/org/apache/avro/TestDataFileMeta.java";
   private static final String file_name_3 = "ipc/src/test/java/org/apache/avro/TestProtocolGeneric.java";
   private static final String jar_dir = "C:/Users/small/.m2/repository";
-
+  private static final String[] file_names = new String[] {file_name_1, file_name_2, file_name_3};
   private static void initCombinedSolver() throws IOException {
     combinedSolver = new CombinedTypeSolver();
     TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
@@ -99,6 +104,69 @@ public class JavaParserTask {
     }
   }
 
+  // Recursively traverse on an Expression and print out all resolved method names
+  private static void helper(Expression e) {
+    if (e == null) return;
+    else if (e.isMethodCallExpr()) {
+      if (!e.asMethodCallExpr().getScope().isPresent()) return;
+      System.out.println(e.asMethodCallExpr().resolve().getQualifiedName());
+      helper(e.asMethodCallExpr().getScope().get());
+    }
+    else if (e.isEnclosedExpr()) helper(e.asEnclosedExpr().getInner());
+    else if (e.isCastExpr()) {
+      helper(e.asCastExpr().getExpression());
+    }
+  }
+
+  private static List<CompilationUnit> getCompilationUnit(JavaParser jvp) throws FileNotFoundException {
+    List<CompilationUnit> result = new ArrayList<>();
+    for (String filename: file_names) {
+      result.add(jvp.parse(new File(src_dir + filename)).getResult().get());
+    }
+    return result;
+  }
+
+  private static List<List<MethodDeclaration>> getMethodNameWithTest(List<CompilationUnit> cuList, VoidVisitor<List<MethodDeclaration>> MethodDeclarationCollector) {
+    System.out.println("======================");
+    System.out.println("Task2 begins:");
+    List<List<MethodDeclaration>> result = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      List<MethodDeclaration> list = new ArrayList<>();
+      MethodDeclarationCollector.visit(cuList.get(i), list);
+      System.out.println("\nParsed file: " + file_names[i] + ":");
+      list.forEach(n -> System.out.println(n.resolve().getQualifiedName()));
+      result.add(new ArrayList<>(list));
+    }
+    return result;
+  }
+
+  private static List<List<MethodCallExpr>> getAssertMethod(List<List<MethodDeclaration>> methodWithTestList, VoidVisitor<List<MethodCallExpr>> MethodCallExprCollector) {
+    System.out.println("======================");
+    System.out.println("Task3 begins:");
+    List<List<MethodCallExpr>> result = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      List<MethodCallExpr> assertList = new ArrayList<>();
+      methodWithTestList.get(i).forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList));
+      System.out.println("\nParsed file: " + file_names[i] + ":");
+      assertList.forEach(System.out::println);
+      result.add(new ArrayList<>(assertList));
+    }
+    return result;
+  }
+
+  private static void getInvokedMethodName(List<List<MethodCallExpr>> assertMethoList) {
+    System.out.println("======================");
+    System.out.println("Task4 begins:");
+    for (int i = 0; i < 3; i++) {
+      System.out.println("\nParsed file: " + file_names[i] + ":");
+      for (MethodCallExpr mce : assertMethoList.get(i)) {
+        for (Expression e : mce.getArguments()) {
+          helper(e);
+        }
+      }
+    }
+  }
+
   public static void main(String[] args) throws IOException {
     // JavaSymbolSolver configuration
     initCombinedSolver();
@@ -106,44 +174,21 @@ public class JavaParserTask {
     JavaParser jvp = new JavaParser(parserConfiguration);
     JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedSolver);
     jvp.getParserConfiguration().setSymbolResolver(symbolSolver);
+
     // task1
-    CompilationUnit cu1 = jvp.parse(new File(src_dir + file_name_1)).getResult().get();
-    CompilationUnit cu2 = jvp.parse(new File(src_dir + file_name_2)).getResult().get();
-    CompilationUnit cu3 = jvp.parse(new File(src_dir + file_name_3)).getResult().get();
+    List<CompilationUnit> cuList= getCompilationUnit(jvp);
 
     // task2
-    System.out.println("Task2 begins:");
     VoidVisitor<List<MethodDeclaration>> MethodDeclarationCollector = new MethodDeclarationCollector();
-    List<MethodDeclaration> mdc1 = new ArrayList<>();
-    MethodDeclarationCollector.visit(cu1, mdc1);
-    List<MethodDeclaration> mdc2 = new ArrayList<>();
-    MethodDeclarationCollector.visit(cu2, mdc2);
-    List<MethodDeclaration> mdc3 = new ArrayList<>();
-    MethodDeclarationCollector.visit(cu3, mdc3);
-    System.out.println("Parsed file: " + file_name_1);
-    mdc1.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
-    System.out.println("Parsed file: " + file_name_2);
-    mdc2.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
-    System.out.println("Parsed file: " + file_name_3);
-    mdc3.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
+    List<List<MethodDeclaration>> methodWithTestList = getMethodNameWithTest(cuList, MethodDeclarationCollector);
     System.out.println();
 
     // task3
-    System.out.println("Task3 begins:");
     VoidVisitor<List<MethodCallExpr>> MethodCallExprCollector = new MethodCallExprCollector();
-    List<MethodCallExpr> assertList1 = new ArrayList<>();
-    mdc1.forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList1));
-    List<MethodCallExpr> assertList2 = new ArrayList<>();
-    mdc2.forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList2));
-    List<MethodCallExpr> assertList3 = new ArrayList<>();
-    mdc3.forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList3));
-
-    System.out.println("Parsed file: " + file_name_1);
-    assertList1.forEach(n -> System.out.println("Assert statement : " + n));
-    System.out.println("Parsed file: " + file_name_2);
-    assertList2.forEach(n -> System.out.println("Assert statement : " + n));
-    System.out.println("Parsed file: " + file_name_3);
-    assertList3.forEach(n -> System.out.println("Assert statement : " + n));
+    List<List<MethodCallExpr>> assertMethodList =  getAssertMethod(methodWithTestList, MethodCallExprCollector);
     System.out.println();
+
+    // task4
+    getInvokedMethodName(assertMethodList);
   }
 }
