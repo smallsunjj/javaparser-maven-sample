@@ -72,6 +72,37 @@ public class JavaParserTask {
     return list;
   }
 
+  private static class MethodDeclarationCollector extends VoidVisitorAdapter<List<MethodDeclaration>> {
+    @Override
+    public void visit(MethodDeclaration md, List<MethodDeclaration> collector) {
+      try {
+        if (md.isAnnotationPresent("Test")) collector.add(md);
+      } catch (Exception e) {
+        System.err.println(e);
+      }
+    }
+  }
+
+/*  private static class MethodCallExprCollector extends VoidVisitorAdapter<List<MethodCallExpr>> {
+    @Override
+    public void visit(MethodCallExpr mce, List<MethodCallExpr> collector) {
+      System.out.println("======================");
+      System.out.println("Method Call Expression: \n" + mce);
+      try {
+       // mce.resolve();
+        collector.add(mce.get)
+      } catch (Exception e) {
+        System.err.println(e);
+      }
+
+    }
+  }*/
+
+  private static List<MethodCallExpr> getMethodDeclarationWithTest(CompilationUnit cu) {
+    List<MethodCallExpr> result = new ArrayList<>();
+    return result;
+  }
+
   public static void main(String[] args) throws IOException {
     // JavaSymbolSolver configuration
     initCombinedSolver();
@@ -84,5 +115,18 @@ public class JavaParserTask {
     CompilationUnit cu2 = jvp.parse(new File(src_dir + file_name_2)).getResult().get();
     CompilationUnit cu3 = jvp.parse(new File(src_dir + file_name_3)).getResult().get();
     // To-do: task2...
+    VoidVisitor<List<MethodDeclaration>> MethodDeclarationCollector = new MethodDeclarationCollector();
+    List<MethodDeclaration> mdc1 = new ArrayList<>();
+    MethodDeclarationCollector.visit(cu1, mdc1);
+    List<MethodDeclaration> mdc2 = new ArrayList<>();
+    MethodDeclarationCollector.visit(cu2, mdc2);
+    List<MethodDeclaration> mdc3 = new ArrayList<>();
+    MethodDeclarationCollector.visit(cu3, mdc3);
+    System.out.println(file_name_1);
+    mdc1.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
+    System.out.println(file_name_2);
+    mdc2.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
+    System.out.println(file_name_3);
+    mdc3.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
   }
 }
