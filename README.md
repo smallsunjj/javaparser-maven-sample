@@ -2,7 +2,7 @@ JavaParser Task
 ---
 Some problems and key steps for each task
 ### Task 1:
-1. The project structure uses [javaparser-maven-sample](https://github.com/javaparser/javaparser-maven-sample)
+1. The project structure is based on [javaparser-maven-sample](https://github.com/javaparser/javaparser-maven-sample)
 2. My result - JavaParserTask.java is under scr/main/java/com/yourorganization/maven_sample/
 3. The Avro project is under src/main/resources
 4. The major part I modified in the initCombinedSolver() function is adding the jar solver. Here is the major **problem**:  
