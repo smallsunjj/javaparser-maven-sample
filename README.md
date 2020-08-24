@@ -7,4 +7,7 @@ Some problems and key steps for each task
 3. The Avro project is under src/main/resources
 4. The major part I modified in the initCombinedSolver() function is adding the jar solver. Here is the major **problem**:  
 According to my understanding, my local IDE with maven framework automatically downloads all the dependecies (jar files) to my local central repository. So the jar_dir is hard-coded, which means you need to update that dir to your jar location.
-  
+
+### Task 2:
+1. Based on Task 1, MethodDeclarationCollector.class is implemented to collect all MethodDeclarations with @Test.
+2. Call .resolve().getQualifiedName() to get qualified names.
