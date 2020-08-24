@@ -33,8 +33,8 @@ public class JavaParserTask {
   private static final String file_name_3 = "ipc/src/test/java/org/apache/avro/TestProtocolGeneric.java";
   private static final String jar_dir = "C:/Users/small/.m2/repository";
 
-  private void initCombinedSolver() throws IOException {
-    CombinedTypeSolver combinedSolver = new CombinedTypeSolver();
+  private static void initCombinedSolver() throws IOException {
+    combinedSolver = new CombinedTypeSolver();
     TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
 
     // get src root
@@ -43,11 +43,13 @@ public class JavaParserTask {
 
     // add java jre solver
     combinedSolver.add(reflectionTypeSolver);
+
     // add src roots into combined solver
     for (SourceRoot sourceRoot : sourceRootList) {
       combinedSolver.add(new JavaParserTypeSolver(sourceRoot.getRoot()));
     }
-    // get all the jar files and add jre solver
+
+    // get all the jar files and add jar solver
     List<File> jar_files = getJarFiles(new File(jar_dir));
     for (File f : jar_files) {
       combinedSolver.add(new JarTypeSolver(f));
@@ -57,7 +59,7 @@ public class JavaParserTask {
         combinedSolver.add(new JarTypeSolver(jar_File));
       }
     }*/
-    this.combinedSolver = combinedSolver;
+    //this.combinedSolver = combinedSolver;
   }
 
   // Recursively collect all jar files
@@ -72,8 +74,7 @@ public class JavaParserTask {
 
   public static void main(String[] args) throws IOException {
     // JavaSymbolSolver configuration
-    JavaParserTask jp = new JavaParserTask();
-    jp.initCombinedSolver();
+    initCombinedSolver();
     ParserConfiguration parserConfiguration = new ParserConfiguration();
     JavaParser jvp = new JavaParser(parserConfiguration);
     JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedSolver);
@@ -82,6 +83,6 @@ public class JavaParserTask {
     CompilationUnit cu1 = jvp.parse(new File(src_dir + file_name_1)).getResult().get();
     CompilationUnit cu2 = jvp.parse(new File(src_dir + file_name_2)).getResult().get();
     CompilationUnit cu3 = jvp.parse(new File(src_dir + file_name_3)).getResult().get();
-
+    // To-do: task2...
   }
 }
