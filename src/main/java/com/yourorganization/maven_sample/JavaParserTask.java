@@ -72,6 +72,7 @@ public class JavaParserTask {
     return list;
   }
 
+  // Collect all MethodDeclarations with @Test
   private static class MethodDeclarationCollector extends VoidVisitorAdapter<List<MethodDeclaration>> {
     @Override
     public void visit(MethodDeclaration md, List<MethodDeclaration> collector) {
@@ -81,26 +82,6 @@ public class JavaParserTask {
         System.err.println(e);
       }
     }
-  }
-
-/*  private static class MethodCallExprCollector extends VoidVisitorAdapter<List<MethodCallExpr>> {
-    @Override
-    public void visit(MethodCallExpr mce, List<MethodCallExpr> collector) {
-      System.out.println("======================");
-      System.out.println("Method Call Expression: \n" + mce);
-      try {
-       // mce.resolve();
-        collector.add(mce.get)
-      } catch (Exception e) {
-        System.err.println(e);
-      }
-
-    }
-  }*/
-
-  private static List<MethodCallExpr> getMethodDeclarationWithTest(CompilationUnit cu) {
-    List<MethodCallExpr> result = new ArrayList<>();
-    return result;
   }
 
   public static void main(String[] args) throws IOException {
