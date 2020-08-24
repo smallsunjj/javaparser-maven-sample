@@ -2,4 +2,4 @@ target
 .idea
 *.iml
 output
-src/main/java/com/yourorganization/maven_sample/JavaParserTask1.java
+src/main/java/com/yourorganization/maven_sample/JavaParserTaskMaster.java
