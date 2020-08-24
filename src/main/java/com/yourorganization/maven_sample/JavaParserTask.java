@@ -18,6 +18,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
 import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
+import javassist.expr.MethodCall;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +85,20 @@ public class JavaParserTask {
     }
   }
 
+  // Collect all assert statements
+  private static class MethodCallExprCollector extends VoidVisitorAdapter<List<MethodCallExpr>> {
+    @Override
+    public void visit(MethodCallExpr mce, List<MethodCallExpr> collector) {
+      try {
+        if (mce.getNameAsString().contains("assert") || (mce.getScope().isPresent() && mce.getScope().get().toString().endsWith("Assert"))) {
+          collector.add(mce);
+        }
+      } catch (Exception e) {
+        System.err.println(e);
+      }
+    }
+  }
+
   public static void main(String[] args) throws IOException {
     // JavaSymbolSolver configuration
     initCombinedSolver();
@@ -91,11 +106,13 @@ public class JavaParserTask {
     JavaParser jvp = new JavaParser(parserConfiguration);
     JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedSolver);
     jvp.getParserConfiguration().setSymbolResolver(symbolSolver);
-
+    // task1
     CompilationUnit cu1 = jvp.parse(new File(src_dir + file_name_1)).getResult().get();
     CompilationUnit cu2 = jvp.parse(new File(src_dir + file_name_2)).getResult().get();
     CompilationUnit cu3 = jvp.parse(new File(src_dir + file_name_3)).getResult().get();
-    // To-do: task2...
+
+    // task2
+    System.out.println("Task2 begins:");
     VoidVisitor<List<MethodDeclaration>> MethodDeclarationCollector = new MethodDeclarationCollector();
     List<MethodDeclaration> mdc1 = new ArrayList<>();
     MethodDeclarationCollector.visit(cu1, mdc1);
@@ -103,11 +120,30 @@ public class JavaParserTask {
     MethodDeclarationCollector.visit(cu2, mdc2);
     List<MethodDeclaration> mdc3 = new ArrayList<>();
     MethodDeclarationCollector.visit(cu3, mdc3);
-    System.out.println(file_name_1);
+    System.out.println("Parsed file: " + file_name_1);
     mdc1.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
-    System.out.println(file_name_2);
+    System.out.println("Parsed file: " + file_name_2);
     mdc2.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
-    System.out.println(file_name_3);
+    System.out.println("Parsed file: " + file_name_3);
     mdc3.forEach(n -> System.out.println("Method name with @Test : " + n.resolve().getQualifiedName()));
+    System.out.println();
+
+    // task3
+    System.out.println("Task3 begins:");
+    VoidVisitor<List<MethodCallExpr>> MethodCallExprCollector = new MethodCallExprCollector();
+    List<MethodCallExpr> assertList1 = new ArrayList<>();
+    mdc1.forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList1));
+    List<MethodCallExpr> assertList2 = new ArrayList<>();
+    mdc2.forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList2));
+    List<MethodCallExpr> assertList3 = new ArrayList<>();
+    mdc3.forEach(mdc -> MethodCallExprCollector.visit(mdc, assertList3));
+
+    System.out.println("Parsed file: " + file_name_1);
+    assertList1.forEach(n -> System.out.println("Assert statement : " + n));
+    System.out.println("Parsed file: " + file_name_2);
+    assertList2.forEach(n -> System.out.println("Assert statement : " + n));
+    System.out.println("Parsed file: " + file_name_3);
+    assertList3.forEach(n -> System.out.println("Assert statement : " + n));
+    System.out.println();
   }
 }
