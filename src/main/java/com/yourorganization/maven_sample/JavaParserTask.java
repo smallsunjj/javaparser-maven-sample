@@ -40,7 +40,6 @@ public class JavaParserTask {
     // get src root
     final ProjectRoot projectRoot = new SymbolSolverCollectionStrategy().collect(Paths.get(src_dir));
     List<SourceRoot> sourceRootList = projectRoot.getSourceRoots();
-    System.out.println(sourceRootList.size());
 
     // add java jre solver
     combinedSolver.add(reflectionTypeSolver);
@@ -65,11 +64,7 @@ public class JavaParserTask {
   private static List<File> getJarFiles(File f) {
     List<File> list = new ArrayList<>();
     for (File nextFile : f.listFiles()) {
-      //System.out.println(nextFile.getName());
-      if (nextFile.isFile() && nextFile.getName().endsWith("jar")) {
-        list.add(nextFile.getAbsoluteFile());
-        //System.out.println(nextFile.getName());
-      }
+      if (nextFile.isFile() && nextFile.getName().endsWith("jar")) list.add(nextFile.getAbsoluteFile());
       else if (nextFile.isDirectory()) list.addAll(getJarFiles(nextFile));
     }
     return list;
